@@ -1,56 +1,102 @@
-const booksList = document.querySelector('#list'); // Select the HTML element with id "list"
-let booklist = []; // Create an empty array to store the books
-let bookHtml = ''; // Create an empty string to store the HTML for each book
+/* eslint-disable */
+import { DateTime, Duration, FixedOffsetZone, IANAZone, Info, Interval, InvalidZone, Settings, SystemZone, VERSION, Zone } from "./module/luxon.js";
+let bookArr = JSON.parse(localStorage.getItem('book')) || [];
+class Book {
+  constructor(title, author) {
+    this.title = title;
+    this.author = author;
+  }
 
-// Check if the "books" item exists in local storage
-if (JSON.parse(localStorage.getItem('books')) == null) {
-  const bookObj = { allbook: booklist }; // Create an object to store the booklist
-  localStorage.setItem('books', JSON.stringify(bookObj)); // Store the bookObj in local storage as a string
-} else {
-  booklist = JSON.parse(localStorage.getItem('books')).allbook; // Get the booklist from local storage
-
-  // Generate HTML for each book and add it to the bookHtml string
-  booklist.forEach((item, index) => {
-    bookHtml += `
-<p>${item.title}</p>
-<p>${item.author}</p>
-<button type="button" class="remove" id="${index}">Remove</button>
-<hr>`;
-  });
-
-  // Set the innerHTML of the booksList element to the generated HTML
-  booksList.innerHTML = bookHtml;
-}
-
-const bookForm = document.querySelector('#book-form'); // Select the HTML element with id "book-form"
-const bookTitle = document.querySelector('#title'); // Select the HTML element with id "title"
-const bookAuthor = document.querySelector('#author'); // Select the HTML element with id "author"
-
-// Add an event listener to the bookForm element to handle form submissions
-bookForm.addEventListener('submit', () => {
-  const newBook = {
-    title: bookTitle.value, // Get the value of the "title" element
-    author: bookAuthor.value, // Get the value of the "author" element
+  addBook = () => {
+    document.querySelector('.form').addEventListener('submit', () => {
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      if (title && author) {
+        const newBook = {
+          title,
+          author,
+        };
+        bookArr.push(newBook);
+        localStorage.setItem('book', JSON.stringify(bookArr));
+        this.showBooks();
+      }
+    });
   };
 
-  const obj = JSON.parse(localStorage.getItem('books')); // Get the books from local storage
+  showBooks = () => {
+    if (!bookArr.length) {
+      document.querySelector('.book-list').innerHTML = 'No books added';
+    } else {
+      let markup = '';
+      bookArr.forEach((elem, index) => {
+        markup += `<div class='book'>
+        <p> " ${elem.title} " by ${elem.author}</p>
+        <button type="button" class="remove-btn" id="${index}">Remove</button>
+      </div>`;
+      });
+      document.querySelector('.book-list').innerHTML = markup;
+    }
+    const removeBook = () => {
+      const removeBtn = document.querySelectorAll('.remove-btn');
 
-  obj.allbook.push(newBook); // Add the new book to the booklist
+      removeBtn.forEach((item) => item.addEventListener('click', () => {
+        const removeId = parseInt(item.id, 10);
+        let obj = JSON.parse(localStorage.getItem('book'));
+        bookArr = obj;
+        bookArr = bookArr.filter((element, index) => index !== removeId);
+        obj = bookArr;
+        localStorage.setItem('book', JSON.stringify(obj));
+        this.showBooks();
+      }));
+    };
+    removeBook();
+  };
+}
 
-  booklist = obj.allbook;
-  localStorage.setItem('books', JSON.stringify(obj)); // Update the booklist in local storage
-});
+const booksSec = document.querySelector('.books');
+const bookCreate = document.querySelector('.book-create');
+const contact = document.querySelector('.contact');
+const booksLink = document.getElementById('books');
+const addBookLink = document.getElementById('add-book');
+const contactLink = document.getElementById('contact');
+const date = document.querySelector('.date');
 
-const removeBtn = document.querySelectorAll('.remove'); // Select all elements with class "remove"
+function now() {
+  const time = DateTime.local();
+  date.innerHTML = time;
+}
+window.onload = now();
 
-// Add an event listener to each remove button to handle removal of books
-removeBtn.forEach((item) => item.addEventListener('click', () => {
-  const removeId = parseInt(item.id, 10); // Get the id of the button that was clicked
-  const obj = JSON.parse(localStorage.getItem('books')); // Get the books from local storage
-  booklist = obj.allbook;
-  // Remove the book with the specified id
-  booklist = booklist.filter((element, index) => index !== removeId);
-  obj.allbook = booklist;
-  localStorage.setItem('books', JSON.stringify(obj)); // Update the booklist in local storage
-  window.location.reload(); // Reload the page
-}));
+function refresh() {
+  contact.style.display = 'none';
+  bookCreate.style.display = 'none';
+  booksSec.style.display = 'block';
+}
+window.onload = refresh();
+
+const navigation = () => {
+  booksLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    booksSec.style.display = 'block';
+    bookCreate.style.display = 'none';
+    contact.style.display = 'none';
+  });
+
+  addBookLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    bookCreate.style.display = 'block';
+    booksSec.style.display = 'none';
+    contact.style.display = 'none';
+  });
+
+  contactLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    bookCreate.style.display = 'none';
+    booksSec.style.display = 'none';
+    contact.style.display = 'block';
+  });
+};
+const awesomeBooks = new Book();
+awesomeBooks.addBook();
+awesomeBooks.showBooks();
+navigation();
